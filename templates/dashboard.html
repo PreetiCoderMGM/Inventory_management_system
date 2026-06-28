@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>System Metrics Overview</h1>
+</div>
+
+<div class="metrics-grid">
+    <div class="card">
+        <h3>Total Unique Items</h3>
+        <p class="metric-val">{{ total_products }}</p>
+    </div>
+    <div class="card">
+        <h3>Total Stock Pieces</h3>
+        <p class="metric-val">{{ total_stock }}</p>
+    </div>
+    <div class="card">
+        <h3>Cumulative Valuation</h3>
+        <p class="metric-val">₹{{ total_value }}</p>
+    </div>
+    <div class="card alert-card">
+        <h3>Low Stock Flags (≤ 5 units)</h3>
+        <p class="metric-val">{{ low_stock }}</p>
+    </div>
+</div>
+{% endblock %}
