@@ -1,0 +1,13 @@
+from flask import Blueprint, render_template
+
+ui_bp = Blueprint('ui', __name__)
+
+
+@ui_bp.route('/')
+def dashboard():
+    return render_template('dashboard.html')
+
+
+@ui_bp.route('/inventory')
+def inventory():
+    return render_template('inventory.html')

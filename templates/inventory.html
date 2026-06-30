@@ -1,63 +1,167 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - Inventory Management</title>
+    <style>
+        :root { --bg-main: #f4f6f9; --panel-color: #ffffff; --text-dark: #2c3e50; --accent-blue: #3498db; --accent-green: #2ecc71; --accent-red: #e74c3c; --border-color: #dcdde1; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-main); color: var(--text-dark); margin: 0; padding: 0; }
+        .navbar { background-color: var(--text-dark); color: #fff; padding: 1rem 2rem; }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+        .nav-brand { font-size: 1.4rem; font-weight: bold; text-decoration: none; color: #fff; }
+        .nav-links { list-style: none; display: flex; gap: 1.5rem; margin: 0; padding: 0; }
+        .nav-links a { color: #fff; text-decoration: none; font-weight: 500; }
+        .main-content { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .inventory-container { display: flex; flex-direction: column; gap: 2rem; }
+        .form-section, .table-section { background: var(--panel-color); padding: 1.5rem; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .inventory-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: flex-end; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-group input { padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 4px; }
+        .inventory-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .inventory-table th, .inventory-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .inventory-table th { background-color: #f8f9fa; }
+        .table-input { width: 90%; padding: 0.4rem; border: 1px solid transparent; background: transparent; }
+        .table-input:focus { border-color: var(--accent-blue); background: #fff; outline: none; }
+        .code-input { max-width: 80px; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; }
+        .btn-primary { background: var(--accent-blue); color: white; padding: 0.65rem 1rem; }
+        .btn-save { background: var(--accent-green); color: white; }
+        .btn-delete { background: var(--accent-red); color: white; margin-left: 0.25rem; }
+        #message-box { padding: 1rem; margin-bottom: 1rem; display: none; border-radius: 4px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">IMS Portal</a>
+            <ul class="nav-links">
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/inventory">Inventory</a></li>
+            </ul>
+        </div>
+    </nav>
 
-{% block content %}
-<div class="inventory-container">
-    <section class="form-section">
-        <h2>Register New Product</h2>
-        <form action="{{ url_for('main.add_product') }}" method="POST" class="inventory-form">
-            <div class="form-group">
-                <label for="name">Product Name</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div class="form-group">
-                <label for="sku">SKU Code</label>
-                <input type="text" id="sku" name="sku" required>
-            </div>
-            <div class="form-group">
-                <label for="quantity">Initial Quantity</label>
-                <input type="number" id="quantity" name="quantity" min="0" required>
-            </div>
-            <div class="form-group">
-                <label for="price">Unit Price (₹)</label>
-                <input type="number" id="price" name="price" step="0.01" min="0" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Commit to Inventory</button>
-        </form>
-    </section>
+    <main class="main-content">
+        <div id="message-box"></div>
 
-    <section class="table-section">
-        <h2>Current Stock Holdings</h2>
-        <table class="inventory-table">
-            <thead>
-                <tr>
-                    <th>SKU</th>
-                    <th>Name</th>
-                    <th>In Stock</th>
-                    <th>Unit Price (₹)</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for product in products %}
-                <tr id="row-{{ product.id }}">
-                    <form action="{{ url_for('main.update_product', id=product.id) }}" method="POST">
-                        <td>{{ product.sku }}</td>
-                        <td><input type="text" name="name" value="{{ product.name }}" class="table-input"></td>
-                        <td><input type="number" name="quantity" value="{{ product.quantity }}" min="0" class="table-input code-input"></td>
-                        <td><input type="number" name="price" value="{{ product.price }}" step="0.01" min="0" class="table-input code-input"></td>
-                        <td>
-                            <button type="submit" class="btn btn-save">Save</button>
-                            <button type="button" class="btn btn-delete" onclick="deleteRow('{{ product.id }}')">Delete</button>
-                        </td>
-                    </form>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5" style="text-align: center;">No items found in system database storage.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
-</div>
-{% endblock %}
+        <div class="inventory-container">
+            <section class="form-section">
+                <h2>Register New Product</h2>
+                <form id="add-form" class="inventory-form">
+                    <div class="form-group"><label>Product Name</label><input type="text" id="name" required></div>
+                    <div class="form-group"><label>SKU Code</label><input type="text" id="sku" required></div>
+                    <div class="form-group"><label>Initial Quantity</label><input type="number" id="quantity" min="0" required></div>
+                    <div class="form-group"><label>Unit Price (₹)</label><input type="number" id="price" step="0.01" min="0" required></div>
+                    <button type="submit" class="btn btn-primary">Commit to Inventory</button>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <h2>Current Stock Holdings</h2>
+                <table class="inventory-table">
+                    <thead>
+                        <tr><th>SKU</th><th>Name</th><th>In Stock</th><th>Unit Price (₹)</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="inventory-tbody">
+                        </tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // UI Helper for Messages
+        function showMessage(msg, isSuccess) {
+            const box = document.getElementById('message-box');
+            box.style.display = 'block';
+            box.innerText = msg;
+            box.style.backgroundColor = isSuccess ? '#d4edda' : '#f8d7da';
+            box.style.color = isSuccess ? '#155724' : '#721c24';
+            setTimeout(() => box.style.display = 'none', 3000);
+        }
+
+        // LOAD: Fetch table data
+        function loadInventory() {
+            fetch('/api/products')
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('inventory-tbody');
+                    tbody.innerHTML = '';
+                    data.forEach(p => {
+                        tbody.innerHTML += `
+                            <tr id="row-${p.id}">
+                                <td>${p.sku}</td>
+                                <td><input type="text" id="name-${p.id}" value="${p.name}" class="table-input"></td>
+                                <td><input type="number" id="qty-${p.id}" value="${p.quantity}" min="0" class="table-input code-input"></td>
+                                <td><input type="number" id="price-${p.id}" value="${p.price}" step="0.01" min="0" class="table-input code-input"></td>
+                                <td>
+                                    <button type="button" class="btn btn-save" onclick="updateRow(${p.id})">Save</button>
+                                    <button type="button" class="btn btn-delete" onclick="deleteRow(${p.id})">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+
+        // CREATE: Handle form submit
+        document.getElementById('add-form').addEventListener('submit', function(e) {
+            e.preventDefault(); // Stop page reload
+            const payload = {
+                name: document.getElementById('name').value,
+                sku: document.getElementById('sku').value,
+                quantity: document.getElementById('quantity').value,
+                price: document.getElementById('price').value
+            };
+
+            fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                showMessage(data.success ? "Product added!" : data.message, data.success);
+                if(data.success) {
+                    document.getElementById('add-form').reset();
+                    loadInventory(); // Reload table
+                }
+            });
+        });
+
+        // UPDATE: Handle row save
+        function updateRow(id) {
+            const payload = {
+                name: document.getElementById(`name-${id}`).value,
+                quantity: document.getElementById(`qty-${id}`).value,
+                price: document.getElementById(`price-${id}`).value
+            };
+            fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => showMessage(data.success ? "Product updated!" : "Error updating", data.success));
+        }
+
+        // DELETE: Handle row delete
+        function deleteRow(id) {
+            if(confirm("Are you sure?")) {
+                fetch(`/api/products/${id}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        document.getElementById(`row-${id}`).remove();
+                        showMessage("Product deleted", true);
+                    }
+                });
+            }
+        }
+
+        // Initialize table on load
+        document.addEventListener("DOMContentLoaded", loadInventory);
+    </script>
+</body>
+</html>
